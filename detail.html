@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoSphere Global | AI Market Insights Detail</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Font Inter & Google Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
+    <style>body { font-family: 'Inter', sans-serif; background-color: #0b0f19; }</style>
+</head>
+<body class="text-gray-100 flex flex-col min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-50 bg-[#0b0f19]/80 backdrop-blur-md border-b border-gray-800/60 px-4 lg:px-8 py-4">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2">
+                <div class="h-9 w-9 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center">
+                    <span class="material-icons-outlined text-black font-bold">insights</span>
+                </div>
+                <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">CryptoSphere</span>
+            </a>
+            <a href="index.html" class="text-xs font-semibold text-gray-400 hover:text-white border border-gray-800 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all">
+                <span class="material-icons-outlined text-sm">arrow_back</span> Kembali ke Terminal
+            </a>
+        </div>
+    </nav>
+
+    <!-- CONTENT DETAIL CONTAINER -->
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-12">
+        <article id="article-content" class="space-y-6">
+            <div class="text-gray-500 text-sm">Sedang memuat konten riset mendalam...</div>
+        </article>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-auto border-t border-gray-800/60 bg-[#070a12] py-6 px-4">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 w-full">
+            <p>&copy; 2026 CryptoSphere Global. All rights reserved.</p>
+            <div class="flex items-center gap-1 text-gray-400 font-medium bg-gray-900/40 border border-gray-800/60 px-3 py-1 rounded-full">
+                <span>Made with</span><span class="text-rose-500 animate-pulse text-sm">❤️</span><span>by</span>
+                <span class="text-emerald-400 font-semibold tracking-wide">Lutfi Hardi Mukhlisin</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INJECT DETAIL DATA LOGIC -->
+    <script>
+        async function getArticleDetail() {
+            const articleContainer = document.getElementById('article-content');
+            
+            // Ambil ID berita dari parameter URL (?id=xxxx)
+            const urlParams = new URLSearchParams(window.location.search);
+            const articleId = urlParams.get('id');
+
+            if (!articleId) {
+                articleContainer.innerHTML = `<div class="text-rose-400">Error: ID Berita tidak ditemukan.</div>`;
+                return;
+            }
+
+            try {
+                const response = await fetch('news.json');
+                const newsData = await response.json();
+                
+                // Cari artikel yang ID-nya cocok
+                const article = newsData.find(item => item.id === articleId);
+
+                if (!article) {
+                    articleContainer.innerHTML = `<div class="text-rose-400">Riset pasar tidak ditemukan atau telah diarsipkan.</div>`;
+                    return;
+                }
+
+                let colorClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                if(article.badgeColor === "amber") colorClass = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                if(article.badgeColor === "rose") colorClass = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+
+                // Render konten penuh
+                articleContainer.innerHTML = `
+                    <div class="flex items-center gap-4 text-xs">
+                        <span class="uppercase tracking-wider font-semibold px-2 py-0.5 rounded border ${colorClass}">${article.badge}</span>
+                        <span class="text-gray-500">${article.date} &bull; Global Market Research</span>
+                    </div>
+                    <h1 class="text-2xl md:text-4xl font-bold tracking-tight text-white leading-tight">${article.title}</h1>
+                    <div class="w-full h-[1px] bg-gray-800/80 my-2"></div>
+                    <p class="text-gray-300 text-sm md:text-base leading-relaxed whitespace-pre-line bg-gray-900/20 border border-gray-900 p-6 rounded-2xl">
+                        ${article.content}
+                    </p>
+                    <div class="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 text-xs text-amber-400/80 leading-relaxed mt-8">
+                        <strong>Risk Warning:</strong> Konten di atas diproduksi melalui sistem simulasi intelijen pasar komprehensif CryptoSphere Global dan bukan referensi mutlak berinvestasi.
+                    </div>
+                `;
+            } catch (error) {
+                console.error("Gagal memuat detail artikel:", error);
+                articleContainer.innerHTML = `<div class="text-rose-400">Gagal menghubungkan ke database server.</div>`;
+            }
+        }
+        window.addEventListener('DOMContentLoaded', getArticleDetail);
+    </script>
+</body>
+</html>

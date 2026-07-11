@@ -1,0 +1,29 @@
+[
+  {
+    "id": "news-001",
+    "badge": "Bullish Momentum",
+    "badgeColor": "emerald",
+    "date": "Hari Ini",
+    "title": "Bitcoin Menguji Resistance Kuat, Likuiditas Pasar Spot Meningkat",
+    "summary": "Simulasi riset harian menunjukkan adanya akumulasi masif pada area support psikologis. Sinyal On-Chain mengindikasikan adanya dorongan institusional.",
+    "content": "Analisis teknikal terbaru menunjukkan Bitcoin (BTC) sedang berupaya menembus zona resistance utama setelah bertahan di atas garis support psikologis yang kuat. Data agregat dari bursa global menunjukkan lonjakan volume perdagangan spot secara masif dalam 24 jam terakhir. <br/><br/>Indikator On-Chain mendeteksi adanya pergerakan wallet whale (investor besar) yang melakukan penarikan aset dari exchange ke cold storage, menandakan sentimen akumulasi jangka panjang. Jika momentum Bullish ini bertahan hingga penutupan lilin mingguan, target harga kuartal ini berpotensi tercapai dengan tingkat volatilitas yang terkendali."
+  },
+  {
+    "id": "news-002",
+    "badge": "Macro Watch",
+    "badgeColor": "amber",
+    "date": "Hari Ini",
+    "title": "Dampak Kebijakan Suku Bunga Global Terhadap Likuiditas Crypto",
+    "summary": "Analisis makro global mengonfirmasi korelasi kuat antara kebijakan moneter AS dan volatilitas volume perdagangan aset digital teratas.",
+    "content": "Pasar Crypto Asset global kembali menunjukkan kepekaan tinggi terhadap rilis data makroekonomi teranyar. Pernyataan terbaru dari bank sentral mengenai arah kebijakan suku bunga berimbas langsung pada pergerakan indeks dolar (DXY), yang secara historis memiliki korelasi terbalik dengan aset kripto.<br/><br/>Riset kami menyarankan para pelaku pasar untuk memperhatikan likuiditas global yang cenderung mengetat menjelang rilis data inflasi. Langkah antisipatif sangat direkomendasikan guna memitigasi risiko fluktuasi harga jangka pendek."
+  },
+  {
+    "id": "news-003",
+    "badge": "Bearish Alert",
+    "badgeColor": "rose",
+    "date": "Kemarin",
+    "title": "Opsi Derivatif Kedaluwarsa, Antisipasi Volatilitas Akhir Pekan",
+    "summary": "Data pasar menunjukkan volume open interest yang sangat tinggi pada instrumen derivatif. Potensi aksi jual jangka pendek patut diwaspadai.",
+    "content": "Menjelang akhir pekan, pasar derivatif crypto mencatat volume kontrak opsi (options) yang akan kedaluwarsa (expiry) dalam jumlah masif. Fenomena ini kerap memicu aksi penyesuaian posisi oleh para market maker dan trader institusional.<br/><br/>Garis batas likuidasi harian pada kontrak berjangka (futures) saat ini berada dalam rentang yang ketat. Jika terjadi tekanan jual sporadis, struktur pasar dapat mengalami koreksi teknikal sesaat (Bearish Alert) sebelum menemukan lantai support baru."
+  }
+]

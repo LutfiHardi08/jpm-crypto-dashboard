@@ -217,6 +217,7 @@
         loadNews();
 
       // --- WEBSOCKET BINANCE REAL-TIME LOGIC (VERSI PERBAIKAN VERCEL & SECURE HTTPS) ---
+// --- ANTI-BLOKIR REAL-TIME TICKER LOGIC (REST API POLLING) ---
 const priceElement = document.getElementById('btc-price');
 const changeElement = document.getElementById('btc-change');
 const highElement = document.getElementById('btc-high');
@@ -224,83 +225,77 @@ const lowElement = document.getElementById('btc-low');
 const statusElement = document.getElementById('connection-status');
 let lastPrice = null;
 
-function connectWebSocket() {
-    // Alamat stream universal paling stabil untuk produksi (tanpa embel-embel port rawan blokir)
-    const socketUrl = 'wss://stream.binance.com/ws/btcusdt@ticker';
-    const btcSocket = new WebSocket(socketUrl);
+async function fetchBinanceData() {
+    // Menggunakan API Endpoint Publik Binance resmi Jalur HTTP standar
+    const apiUrl = 'https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT';
     
-    btcSocket.onopen = () => {
-        if(statusElement) {
-            statusElement.innerHTML = `<span class="material-icons-outlined text-xs text-emerald-400 animate-pulse">radio_button_checked</span> Live`;
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const data = await response.json();
+        
+        // Ekstraksi Parameter Data Pasar:
+        // lastPrice = Harga Terakhir, priceChangePercent = Persentase, highPrice = Tertinggi, lowPrice = Terendah
+        const currentPrice = parseFloat(data.lastPrice);
+        const priceChangePercent = parseFloat(data.priceChangePercent).toFixed(2);
+        const highPrice = parseFloat(data.highPrice);
+        const lowPrice = parseFloat(data.lowPrice);
+        
+        if (!isNaN(currentPrice)) {
+            // 1. Tampilkan Harga Utama BTC
+            priceElement.innerText = `$${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            
+            // 2. Tampilkan Data High dan Low 24 Jam
+            if (highElement) highElement.innerText = `$${highPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (lowElement) lowElement.innerText = `$${lowPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // 3. Efek Animasi Transisi Warna (Glow) Naik / Turun
+            if (lastPrice !== null) {
+                if (currentPrice > lastPrice) {
+                    priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-green-400 neon-glow-green transition-all";
+                } else if (currentPrice < lastPrice) {
+                    priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-red-500 neon-glow-red transition-all";
+                }
+            } else {
+                priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-gray-100";
+            }
+            
+            lastPrice = currentPrice;
+        }
+
+        // 4. Update Status Persentase Naik/Turun
+        if (!isNaN(priceChangePercent) && changeElement) {
+            if (priceChangePercent >= 0) {
+                changeElement.innerText = `+${priceChangePercent}% (24h)`;
+                changeElement.className = "text-sm font-semibold mt-2 text-green-400 font-mono";
+            } else {
+                changeElement.innerText = `${priceChangePercent}% (24h)`;
+                changeElement.className = "text-sm font-semibold mt-2 text-red-400 font-mono";
+            }
+        }
+
+        // Tunjukkan indikator bahwa data sukses terupdate
+        if (statusElement) {
+            statusElement.innerHTML = `<span class="material-icons-outlined text-xs text-emerald-400 animate-pulse">radio_button_checked</span> Live (API)`;
             statusElement.className = "text-xs text-emerald-400 flex items-center gap-1 font-medium";
         }
-    };
 
-    btcSocket.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data);
-            
-            // Ekstraksi parameter ticker resmi Binance
-            const currentPrice = parseFloat(data.c);
-            const priceChangePercent = parseFloat(data.P).toFixed(2);
-            const highPrice = parseFloat(data.h);
-            const lowPrice = parseFloat(data.l);
-            
-            // Validasi jika data angka tidak rusak (NaN)
-            if (!isNaN(currentPrice)) {
-                // 1. Render Harga Utama
-                priceElement.innerText = `$${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                
-                // 2. Render High & Low 24 Jam
-                if (highElement) highElement.innerText = `$${highPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                if (lowElement) lowElement.innerText = `$${lowPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-                // 3. Animasi Perubahan Warna Efek Glow
-                if (lastPrice !== null) {
-                    if (currentPrice > lastPrice) {
-                        priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-green-400 neon-glow-green transition-all";
-                    } else if (currentPrice < lastPrice) {
-                        priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-red-500 neon-glow-red transition-all";
-                    }
-                } else {
-                    priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-gray-100";
-                }
-                
-                lastPrice = currentPrice;
-            }
-
-            // 4. Render Persentase Naik/Turun
-            if (!isNaN(priceChangePercent) && changeElement) {
-                if (priceChangePercent >= 0) {
-                    changeElement.innerText = `+${priceChangePercent}% (24h)`;
-                    changeElement.className = "text-sm font-semibold mt-2 text-green-400 font-mono";
-                } else {
-                    changeElement.innerText = `${priceChangePercent}% (24h)`;
-                    changeElement.className = "text-sm font-semibold mt-2 text-red-400 font-mono";
-                }
-            }
-        } catch (err) {
-            console.error("Gagal parsing data ticker:", err);
+    } catch (error) {
+        console.error("Gagal memuat data pasar dari API:", error);
+        if (statusElement) {
+            statusElement.innerHTML = `<span class="material-icons-outlined text-xs text-amber-500">error_outline</span> Reconnecting...`;
+            statusElement.className = "text-xs text-amber-500 flex items-center gap-1";
         }
-    };
-
-    // Otomatis menyambung kembali dalam 3 detik jika koneksi drop
-    btcSocket.onclose = () => {
-        if(statusElement) {
-            statusElement.innerHTML = `<span class="material-icons-outlined text-xs text-gray-500 animate-spin">sync</span> Reconnecting...`;
-            statusElement.className = "text-xs text-gray-500 flex items-center gap-1";
-        }
-        setTimeout(connectWebSocket, 3000);
-    };
-
-    btcSocket.onerror = (error) => {
-        console.error("Koneksi WebSocket bermasalah:", error);
-        btcSocket.close();
-    };
+    }
 }
 
-// EKSEKUSI LANGSUNG: Jalankan koneksi secara instan tanpa menunggu siklus 'load' halaman
-connectWebSocket();
+// --- INTERVAL PEMBARUAN OTOMATIS ---
+// Eksekusi langsung di detik pertama halaman dibuka
+fetchBinanceData();
+
+// Lakukan polling otomatis setiap 2 detik untuk mensimulasikan pergerakan real-time secara aman
+setInterval(fetchBinanceData, 2000);
     </script>
 </body>
 </html>

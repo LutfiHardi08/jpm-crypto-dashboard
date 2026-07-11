@@ -216,7 +216,7 @@
         }
         loadNews();
 
-       // --- WEBSOCKET BINANCE REAL-TIME LOGIC (FIXED HIGH & LOW) ---
+      // --- WEBSOCKET BINANCE REAL-TIME LOGIC (VERSI PERBAIKAN VERCEL & SECURE HTTPS) ---
 const priceElement = document.getElementById('btc-price');
 const changeElement = document.getElementById('btc-change');
 const highElement = document.getElementById('btc-high');
@@ -225,69 +225,82 @@ const statusElement = document.getElementById('connection-status');
 let lastPrice = null;
 
 function connectWebSocket() {
-    // Menggunakan port default 9443 untuk kestabilan stream data ticker global
-    const btcSocket = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker');
+    // Alamat stream universal paling stabil untuk produksi (tanpa embel-embel port rawan blokir)
+    const socketUrl = 'wss://stream.binance.com/ws/btcusdt@ticker';
+    const btcSocket = new WebSocket(socketUrl);
     
     btcSocket.onopen = () => {
-        statusElement.innerHTML = `<span class="material-icons-outlined text-xs text-emerald-400 animate-pulse">radio_button_checked</span> Real-time`;
-        statusElement.className = "text-xs text-emerald-400 flex items-center gap-1 font-medium";
+        if(statusElement) {
+            statusElement.innerHTML = `<span class="material-icons-outlined text-xs text-emerald-400 animate-pulse">radio_button_checked</span> Live`;
+            statusElement.className = "text-xs text-emerald-400 flex items-center gap-1 font-medium";
+        }
     };
 
     btcSocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        
-        // Aturan ekstraksi parameter ticker resmi Binance:
-        // c = Current/Last Price, P = Price Change Percent, h = High Price, l = Low Price
-        const currentPrice = parseFloat(data.c);
-        const priceChangePercent = parseFloat(data.P).toFixed(2);
-        const highPrice = parseFloat(data.h);
-        const lowPrice = parseFloat(data.l);
-        
-        // 1. Tampilkan Harga Utama BTC dengan Format Mata Uang Terstruktur
-        priceElement.innerText = `$${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        
-        // 2. Tampilkan Data High dan Low (Perbaikan Utama)
-        highElement.innerText = `$${highPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        lowElement.innerText = `$${lowPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        try {
+            const data = JSON.parse(event.data);
+            
+            // Ekstraksi parameter ticker resmi Binance
+            const currentPrice = parseFloat(data.c);
+            const priceChangePercent = parseFloat(data.P).toFixed(2);
+            const highPrice = parseFloat(data.h);
+            const lowPrice = parseFloat(data.l);
+            
+            // Validasi jika data angka tidak rusak (NaN)
+            if (!isNaN(currentPrice)) {
+                // 1. Render Harga Utama
+                priceElement.innerText = `$${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                
+                // 2. Render High & Low 24 Jam
+                if (highElement) highElement.innerText = `$${highPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                if (lowElement) lowElement.innerText = `$${lowPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-        // 3. Efek Animasi Transisi Warna Naik/Turun (Glow Effect)
-        if (lastPrice !== null) {
-            if (currentPrice > lastPrice) {
-                priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-green-400 neon-glow-green transition-all";
-            } else if (currentPrice < lastPrice) {
-                priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-red-500 neon-glow-red transition-all";
+                // 3. Animasi Perubahan Warna Efek Glow
+                if (lastPrice !== null) {
+                    if (currentPrice > lastPrice) {
+                        priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-green-400 neon-glow-green transition-all";
+                    } else if (currentPrice < lastPrice) {
+                        priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-red-500 neon-glow-red transition-all";
+                    }
+                } else {
+                    priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-gray-100";
+                }
+                
+                lastPrice = currentPrice;
             }
-        } else {
-            priceElement.className = "text-3xl lg:text-4xl font-mono font-bold tracking-tight text-gray-100";
-        }
 
-        // 4. Update Status Persentase Naik/Turun 24 Jam
-        if (priceChangePercent >= 0) {
-            changeElement.innerText = `+${priceChangePercent}% (24h)`;
-            changeElement.className = "text-sm font-semibold mt-2 text-green-400 font-mono";
-        } else {
-            changeElement.innerText = `${priceChangePercent}% (24h)`;
-            changeElement.className = "text-sm font-semibold mt-2 text-red-400 font-mono";
+            // 4. Render Persentase Naik/Turun
+            if (!isNaN(priceChangePercent) && changeElement) {
+                if (priceChangePercent >= 0) {
+                    changeElement.innerText = `+${priceChangePercent}% (24h)`;
+                    changeElement.className = "text-sm font-semibold mt-2 text-green-400 font-mono";
+                } else {
+                    changeElement.innerText = `${priceChangePercent}% (24h)`;
+                    changeElement.className = "text-sm font-semibold mt-2 text-red-400 font-mono";
+                }
+            }
+        } catch (err) {
+            console.error("Gagal parsing data ticker:", err);
         }
-        
-        lastPrice = currentPrice;
     };
 
-    // Auto-reconnect jika jaringan terputus tiba-tiba
+    // Otomatis menyambung kembali dalam 3 detik jika koneksi drop
     btcSocket.onclose = () => {
-        statusElement.innerHTML = `<span class="material-icons-outlined text-xs text-gray-500 animate-spin">sync</span> Reconnecting...`;
-        statusElement.className = "text-xs text-gray-500 flex items-center gap-1";
-        setTimeout(connectWebSocket, 4000);
+        if(statusElement) {
+            statusElement.innerHTML = `<span class="material-icons-outlined text-xs text-gray-500 animate-spin">sync</span> Reconnecting...`;
+            statusElement.className = "text-xs text-gray-500 flex items-center gap-1";
+        }
+        setTimeout(connectWebSocket, 3000);
     };
 
     btcSocket.onerror = (error) => {
-        console.error("WebSocket Error: ", error);
+        console.error("Koneksi WebSocket bermasalah:", error);
         btcSocket.close();
     };
 }
 
-// Jalankan fungsi saat jendela browser selesai dimuat
-window.addEventListener('load', connectWebSocket);
+// EKSEKUSI LANGSUNG: Jalankan koneksi secara instan tanpa menunggu siklus 'load' halaman
+connectWebSocket();
     </script>
 </body>
 </html>
